@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  computer-use-agent:
+    build: .
+    ports:
+      - "8501:8501"   # Streamlit UI
+      - "5900:5900"   # VNC viewer (connect to see the virtual desktop)
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DOCKER_MODE=true
+      - DISPLAY=:99
+    volumes:
+      - ./trajectory.json:/app/trajectory.json
+    restart: unless-stopped
