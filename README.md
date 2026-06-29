@@ -1,110 +1,110 @@
-# Claude Computer Use Agent
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=200&color=0:0d47a1,50:ff006e,100:00ffff&text=Computer%20Use%20Agent&fontSize=44&fontColor=ffffff&animation=fadeIn&desc=Claude%20%C2%B7%20Streamlit%20%C2%B7%20Docker%20%C2%B7%20VNC&descAlignY=80&descSize=16" width="100%" alt="banner"/>
+</div>
 
-A desktop-control agent powered by **claude-sonnet-4-6** and Anthropic's
-`computer-use-2024-10-22` beta.  The agent sees your screen via screenshots,
-plans actions, and drives mouse/keyboard through a clean Streamlit UI.
+<div align="center">
 
-Key features:
+![Python](https://img.shields.io/badge/Python_3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Anthropic](https://img.shields.io/badge/Claude_Sonnet_4.6-D97757?style=for-the-badge&logo=anthropic&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker_sandbox-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![VNC](https://img.shields.io/badge/VNC_viewer-007ACC?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-00ff41?style=for-the-badge)
 
-- **Agentic loop** — screenshot → Claude → tool execution → repeat until task complete
-- **Prompt caching** — system prompt placed under `cache_control` for lower cost on long tasks
-- **Image pruning** — keeps only the last 3 screenshots in context to stay within the context window
-- **Trajectory recording** — every action is appended to `trajectory.json` for replay / debugging
-- **Docker sandbox** — Ubuntu + Xvfb + x11vnc + Firefox ESR; watch the virtual desktop over VNC
+</div>
+
+A desktop-control agent powered by **Claude Sonnet 4.6** and Anthropic's `computer-use-2024-10-22` beta. The agent **sees** your screen via screenshots, **plans** actions, and **drives** mouse and keyboard — through a clean Streamlit UI, with a Docker + VNC sandbox so it can't break your real desktop.
+
+## 🏗️ How it works
+
+```mermaid
+flowchart LR
+    U[User task] --> UI[Streamlit UI]
+    UI --> L[🔁 Agentic loop]
+    L -->|capture| SS[📸 Screenshot]
+    SS -->|w/ cached system prompt| C[Claude Sonnet 4.6<br/>computer-use beta]
+    C -->|tool_use:<br/>click / type / key / scroll| T[Tools]
+    T -->|xdotool / pyautogui| DESK{{Desktop<br/>real or Docker}}
+    DESK -->|new state| SS
+    T -->|action log| TJ[(trajectory.json)]
+    DESK -.->|VNC port 5900| VIEW[👁️ VNC viewer]
+```
+
+## ✨ Features
+
+- 🤖 **Agentic loop** — screenshot → Claude → tool execution → repeat until done
+- 💸 **Prompt caching** — system prompt flagged `cache_control: ephemeral` for low-cost long tasks
+- 🖼️ **Image pruning** — keeps only the last 3 screenshots in context (stays under the window)
+- 📼 **Trajectory recording** — every action appended to `trajectory.json` for replay / debugging
+- 🛡️ **Docker sandbox** — Ubuntu + Xvfb + x11vnc + Firefox ESR; watch via VNC
 
 ---
 
-## Quick start (local desktop, demo mode)
+## 🚀 Quick start (demo mode, real desktop)
 
 ```bash
-# 1. Clone and enter the repo
 git clone https://github.com/Dhanush-Aries/computer-use-agent.git
 cd computer-use-agent
 
-# 2. Create a virtual environment
 python3 -m venv .venv && source .venv/bin/activate
-
-# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure your API key
-cp .env.example .env
-# Edit .env and set ANTHROPIC_API_KEY
-
-# 5. Launch the UI
-streamlit run app.py
+cp .env.example .env                # add ANTHROPIC_API_KEY
+streamlit run app.py                # http://localhost:8501
 ```
 
-Open [http://localhost:8501](http://localhost:8501), type a task, and watch
-the agent control your desktop.
-
-> **Note:** In demo mode (`DOCKER_MODE=false`) the agent controls your *real*
-> desktop via pyautogui.  Run inside the Docker container (below) for a safe
-> sandboxed environment.
+> ⚠️ **Demo mode** (`DOCKER_MODE=false`) drives your **real desktop** via pyautogui. Use the Docker sandbox below for safety.
 
 ---
 
-## Docker sandbox
+## 🐳 Docker sandbox
 
 ```bash
-# Build and start
-cp .env.example .env   # add your ANTHROPIC_API_KEY
+cp .env.example .env                # add ANTHROPIC_API_KEY
 docker compose up --build
 
 # Streamlit UI  → http://localhost:8501
-# VNC viewer    → localhost:5900  (no password)
+# VNC viewer    → localhost:5900     (no password)
 ```
 
-The container runs an Xvfb virtual display (1280×800) with Firefox ESR.
-Connect a VNC client to `localhost:5900` to watch the agent work in real time.
+The container runs an Xvfb virtual display (1280×800) with Firefox ESR. Point a VNC client at `localhost:5900` to watch the agent in real time.
 
 ---
 
-## Project structure
+## 📂 Project structure
 
 ```
 computer-use-agent/
 ├── app.py                        # Streamlit UI
 ├── agent/
-│   ├── __init__.py
 │   ├── computer_use_agent.py     # Main agentic loop + prompt caching
-│   ├── tools.py                  # Computer-use tool definitions & execution
+│   ├── tools.py                  # Computer-use tool defs & execution
 │   ├── image_utils.py            # Screenshot capture + image pruning
 │   └── trajectory.py             # Action recorder → trajectory.json
 ├── Dockerfile                    # Ubuntu + Xvfb + x11vnc + Firefox
 ├── docker-compose.yml
 ├── docker-entrypoint.sh
 ├── requirements.txt
-├── .env.example
-└── README.md
+└── .env.example
 ```
 
 ---
 
-## Environment variables
+## ⚙️ Environment
 
 | Variable | Default | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | — | **Required.** Your Anthropic API key. |
-| `DOCKER_MODE` | `false` | `true` → use xdotool/scrot inside Docker; `false` → use pyautogui on real desktop. |
-| `DISPLAY` | `:99` | X display used in Docker mode. |
-| `SCREEN_WIDTH` | `1280` | Virtual display width (Docker). |
-| `SCREEN_HEIGHT` | `800` | Virtual display height (Docker). |
-| `VNC_PORT` | `5900` | VNC server port (Docker). |
-| `STREAMLIT_PORT` | `8501` | Streamlit server port. |
+| `ANTHROPIC_API_KEY` | — | **Required.** |
+| `DOCKER_MODE` | `false` | `true` → xdotool/scrot in Docker; `false` → pyautogui on real desktop |
+| `DISPLAY` | `:99` | X display used in Docker mode |
+| `SCREEN_WIDTH` | `1280` | Virtual display width (Docker) |
+| `SCREEN_HEIGHT` | `800` | Virtual display height (Docker) |
+| `VNC_PORT` | `5900` | VNC server port (Docker) |
+| `STREAMLIT_PORT` | `8501` | Streamlit server port |
 
 ---
 
-## How prompt caching works
-
-The system prompt is passed as a list with a single block containing
-`"cache_control": {"type": "ephemeral"}`.  On the first request Anthropic
-caches the prompt; every subsequent request in the same task reuses the cache,
-cutting input-token costs significantly on long multi-step tasks.
-
----
-
-## Trajectory format
+## 📼 Trajectory format
 
 `trajectory.json` is a JSON array of action objects:
 
@@ -121,12 +121,14 @@ cutting input-token costs significantly on long multi-step tasks.
 
 ---
 
-## Requirements
+## ⚙️ Requirements
 
-- Python 3.11+
-- `anthropic>=0.40.0`
-- `streamlit>=1.32.0`
-- `Pillow>=10.0.0`
-- `pyautogui>=0.9.54` (demo mode only)
-- `python-dotenv>=1.0.0`
-- Docker + Docker Compose (sandbox mode)
+Python 3.11+ · `anthropic>=0.40.0` · `streamlit>=1.32.0` · `Pillow>=10.0.0` · `pyautogui>=0.9.54` (demo) · `python-dotenv>=1.0.0` · Docker + Compose (sandbox)
+
+## 📜 License
+
+MIT — see [LICENSE](./LICENSE)
+
+---
+
+<sub>Part of the <a href="https://github.com/Dhanush-Aries">Dhanush Shankar</a> AI engineering portfolio.</sub>
