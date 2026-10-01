@@ -2,8 +2,6 @@
 
 > **A minimal, production-shape harness around Anthropic's `computer-use-2024-10-22` beta: Streamlit UI, screenshot → Claude → tool_use → dispatch loop, image pruning to stay under the context window, prompt caching to keep the bill flat, and a Docker + VNC sandbox so it can't nuke your real desktop.**
 
-<p align="center"><img src="assets/hero.gif" alt="Claude driving a Docker desktop over VNC" width="720"></p>
-
 <p align="center">
   <img src="https://img.shields.io/github/actions/workflow/status/Danush-Aries/computer-use-agent/ci.yml?branch=main&style=flat-square" alt="build">
   <img src="https://img.shields.io/badge/license-MIT-00ff41?style=flat-square" alt="license">
@@ -56,12 +54,6 @@ flowchart LR
     T -->|action log| TJ[(trajectory.json)]
     DESK -.->|VNC port 5900| VIEW[VNC viewer]
 ```
-
-## Screenshots
-
-| Streamlit UI | VNC into the Docker sandbox | Trajectory replay |
-|---|---|---|
-| ![](assets/screenshot-1.png) | ![](assets/screenshot-2.png) | ![](assets/screenshot-3.png) |
 
 ## Environment
 
